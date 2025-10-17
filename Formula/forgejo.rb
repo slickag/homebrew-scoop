@@ -8,8 +8,8 @@ class Forgejo < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/slickag/scoop"
-    sha256 cellar: :any_skip_relocation, arm64_tahoe:  "0850c9ea8dac7ae53a924ef1038d259f0aa1979f987b110ac7b8f850c6e261b3"
-    sha256 cellar: :any_skip_relocation, x86_64_linux: "d3902014632bf6df9d9c407826149fc1c9616e35800532ebbc008c34b9cc57a5"
+    sha256 cellar: :any_skip_relocation, arm64_tahoe:  "d63ac61e7aeceff33070231394b6711e86770b4cd429dac2c5b134bf0d982e2f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "9557b86bd48cd0468fb7414a612bc879fdc79b38579f6b2593919f1e31e6ca4c"
   end
 
   depends_on "go" => :build
