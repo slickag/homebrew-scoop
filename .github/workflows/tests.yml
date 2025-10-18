@@ -13,9 +13,9 @@ on:
 env:
   HOMEBREW_DEVELOPER: 1
 
-defaults:
-  run:
-    shell: bash -xeuo pipefail {0}
+# defaults:
+#   run:
+#     shell: bash -xeuo pipefail {0}
 
 concurrency:
   group: cache-${{ github.event.pull_request.number }}
@@ -28,6 +28,10 @@ jobs:
         os: [ ubuntu-latest, macos-26, macos-15, macos-15-intel, macos-14 ]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    # outputs:
+    #   testing_formulae: ${{ steps.formulae-detect.outputs.testing_formulae }}
+    #   added_formulae: ${{ steps.formulae-detect.outputs.added_formulae }}
+    #   deleted_formulae: ${{ steps.formulae-detect.outputs.deleted_formulae }}
     permissions:
       actions: read
       checks: read
@@ -73,6 +77,10 @@ jobs:
       - name: Setup Homebrew test environment
         run: brew test-bot --only-setup
 
+      - name: Formulae detect
+        id: formulae-detect
+        run: brew test-bot --only-formulae-detect
+
       - name: Install FUSE-T
         if: matrix.os != 'ubuntu-latest'
         run: |
@@ -90,9 +98,41 @@ jobs:
           echo "::add-mask::${base64_token}"
           echo "token=${base64_token}" >> "${GITHUB_OUTPUT}"
       - run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/slickag/scoop
-        if: github.event_name == 'pull_request'
+        name: Build bottle
+        if: github.event_name == 'pull_request' && matrix.os != 'macos-15-intel'
+        id: build-bottle
         env:
           HOMEBREW_DOCKER_REGISTRY_TOKEN: ${{ steps.base64-encode.outputs.token }}
+      - run: |
+          if [[ -z "$TESTING_FORMULAE" ]]
+          then
+            exit 0
+          fi
+          
+          brew install --formula --build-bottle "${TESTING_FORMULAE}"
+          brew bottle --verbose --json --root-url=https://ghcr.io/v2/slickag/scoop --only-json-tab "${TESTING_FORMULAE}"
+        if: github.event_name == 'pull_request' && matrix.os == 'macos-15-intel'
+        name: Build bottle
+        id: build-bottle-intel
+        env:
+          HOMEBREW_DOCKER_REGISTRY_TOKEN: ${{ steps.base64-encode.outputs.token }}
+          TESTING_FORMULAE: ${{ steps.formulae-detect.outputs.testing_formulae }}
+
+      # - name: Setup upterm session for debugging
+        # id: debug-workflow-run
+        # # uses: actions/checkout@v2
+        # # NOTE: ipatch, seems to be issue with macos runners circa oct 2024
+        # # uses: lhotari/action-upterm@v1
+        # #-------
+        # uses: owenthereal/action-upterm@main
+        # if: failure() && matrix.os == 'macos-15-intel'
+        # with:
+          # # Restrict to the user who triggered the workflow
+          # limit-access-to-actor: true
+          # # Specific authorized users only
+          # limit-access-to-users: slickag
+          # ## Shut down the server if unconnected after 5 minutes.
+          # wait-timeout-minutes: 5
 
       - name: Upload bottles as artifact
         if: always() && github.event_name == 'pull_request'
