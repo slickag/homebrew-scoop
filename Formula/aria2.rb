@@ -40,12 +40,11 @@ class Aria2 < Formula
 
   def install
     ENV.cxx11
-    ENV.clang
 
     if build.head?
       ENV.append_to_cflags "-march=native -O3 -pipe -flto=auto"
 
-      system "autoreconf", "--force", "--install", "--verbose" if build.head?
+      system "autoreconf", "--force", "--install", "--verbose"
     end
 
     args = %w[
@@ -63,6 +62,7 @@ class Aria2 < Formula
       --without-libnettle
     ]
     if OS.mac?
+      ENV.clang
       args << "--with-appletls"
       args << "--without-openssl"
     else
