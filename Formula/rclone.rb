@@ -8,8 +8,11 @@ class Rclone < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/slickag/scoop"
-    sha256 cellar: :any_skip_relocation, arm64_tahoe:  "92d64bc45409e51ca070206a880c0b94aac8c2e4dfbb1daec325b8852adf752a"
-    sha256 cellar: :any_skip_relocation, x86_64_linux: "ab60dcaec5eb8c3432e1efb5d0ba0fac4aa54c419b092ea99022f39d9c9f5c4c"
+    sha256 cellar: :any_skip_relocation, arm64_tahoe:   "8657c692526ca7e55c4bb7e63ca8c896e1161c9f374e24bf25623269babdd077"
+    sha256 cellar: :any_skip_relocation, arm64_sequoia: "27358fbca09b49c42a66d0a21e0c3d5c20fe8d39ce06238a6d9330fa6499bd46"
+    sha256 cellar: :any_skip_relocation, arm64_sonoma:  "344f175c1df778955c108b994a46c2019c112477efaccea8350f07bfbd2c15ca"
+    sha256 cellar: :any_skip_relocation, sequoia:       "b460b870adf51873da73b33bd10476cf82c8e3e1199cde9328366111389d356e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "ad0343747ccb42f06e1b09153bb7866cc2de4c455a4f267e6b661f39f784e60b"
   end
 
   depends_on "go" => :build
