@@ -7,10 +7,12 @@ class Aria2 < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/slickag/scoop"
-    sha256 cellar: :any,                 arm64_tahoe:   "f29da257d80e5e8990adb8b19d653437f857660d40ece3b3f13295c93d18405a"
-    sha256 cellar: :any,                 arm64_sequoia: "1705d5654123afcc3e489325133a6640edbc1a3acaabc6adacd5cf38f428bb33"
-    sha256 cellar: :any,                 arm64_sonoma:  "427e5929b70da580275c65546b66c94efd84f51e226ebd62c8b74551490c1e7b"
-    sha256 cellar: :any_skip_relocation, x86_64_linux:  "e583c476aad31d75f19b4ef522fa283dace186f46eb5e7cab4bd13e4faa0d4fe"
+    rebuild 1
+    sha256 cellar: :any,                 arm64_tahoe:   "02ed7775b9fb75eaf78efc09658f9da3baa141c8b4cbdead8ba601825f4f6917"
+    sha256 cellar: :any,                 arm64_sequoia: "8254c20280701b35dec62a9e31e8bc5b7410b698579cba124b94bec8aea75047"
+    sha256 cellar: :any,                 arm64_sonoma:  "5c6c13c2bc1c28d47e0dfbf60a08ea06be6a2ad72a76400acbea2d372d48e7b3"
+    sha256 cellar: :any,                 sequoia:       "d181228e12bc518d5b387e6b3d39e0ca4d4da6d3d383582e24f97d3e0f96665f"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "5530134b8dd643d0853bbc6646bfe84b252e3526312956b160d98a40e7baebb8"
   end
 
   head do
