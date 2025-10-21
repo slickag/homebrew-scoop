@@ -93,7 +93,7 @@ jobs:
       - run: |
           if [[ "${RUNNER_OS}" = macOS && "$(uname -m)" = x86_64 ]]
           then
-            HOMEBREW_NO_INSTALL_FROM_API=1
+            export HOMEBREW_NO_INSTALL_FROM_API=1
             cp /Users/runner/work/homebrew-scoop/homebrew-scoop/.github/files/tb_formulae "$(brew --prefix)/Homebrew/Library/Homebrew/test_bot/formulae.rb"
             brew test-bot --verbose --only-formulae --root-url=https://ghcr.io/v2/slickag/scoop
           else
