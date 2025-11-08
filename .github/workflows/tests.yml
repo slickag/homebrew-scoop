@@ -19,15 +19,29 @@ defaults:
     shell: bash -xeuo pipefail {0}
 
 concurrency:
-  group: cache-${{ github.event.pull_request.number }}
+  group: tests-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
+  check-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - run: brew test-bot --only-tap-syntax
   test-bot:
+    needs: check-syntax
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-26, macos-15, macos-15-intel, macos-14 ]
-      fail-fast: false
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-26
+          - macos-15
+          - macos-15-intel
+          - macos-14
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
@@ -36,10 +50,18 @@ jobs:
       packages: read
       pull-requests: read
     steps:
+      - name: Preinstall Homebrew
+        if: matrix.os == 'ubuntu-24.04-arm'
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
         with:
+          cask: true
+          core: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup runner
@@ -48,12 +70,12 @@ jobs:
       - name: Get cache key
         id: cache-key
         run: |
-          cache_key_prefix="${RUNNER_OS}"
-          if [ "${RUNNER_OS}" = macOS ]
+          cache_key_prefix="${{ runner.os }}"
+          if [ "${{ runner.os }}" == "macOS" ]
           then
             macos_version="$(sw_vers -productVersion)"
             cache_key_prefix="macos${macos_version%%.*}-$(uname -m)"
-          elif [ "${RUNNER_OS}" = Linux ]
+          elif [ "${{ runner.os }}" == "Linux" ]
           then
             cache_key_prefix="linux-$(uname -m)"
           fi
@@ -61,26 +83,27 @@ jobs:
 
       - name: Cache Homebrew Bundler RubyGems
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@main
         with:
           path: ${{ steps.set-up-homebrew.outputs.gems-path }}
           key: ${{ steps.cache-key.outputs.prefix }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ steps.cache-key.outputs.prefix }}-rubygems-
 
-      - name: Install Homebrew Bundler RubyGems
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: brew install-bundler-gems
+      # - name: Install Homebrew Bundler RubyGems
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   run: brew install-bundler-gems
 
       - name: Setup Homebrew test environment
-        run: brew test-bot --only-setup
+        if: matrix.os != 'ubuntu-24.04-arm'
+        run: |
+          brew install jq
+          [[ -e "$(brew tap-info --json homebrew/core | jq -r '.[].path')/Formula/o/openssl@1.1.rb" ]] && rm "$(brew tap-info --json homebrew/core | jq -r '.[].path')/Formula/o/openssl@1.1.rb"
+          brew test-bot --only-setup
 
       - name: Install FUSE-T
-        if: matrix.os != 'ubuntu-latest'
-        run: |
-          brew install --cask fuse-t
-          /bin/bash -c /Users/runner/work/homebrew-scoop/homebrew-scoop/cmd/fuse-t-links-add > /dev/null
+        if: ${{ runner.os == 'macOS' }}
+        run: brew install --cask slickag/scoop/fuse-t
 
-      - run: brew test-bot --only-tap-syntax
       - name: Base64-encode GITHUB_TOKEN for HOMEBREW_DOCKER_REGISTRY_TOKEN
         id: base64-encode
         if: github.event_name == 'pull_request'
@@ -91,11 +114,14 @@ jobs:
           echo "::add-mask::${base64_token}"
           echo "token=${base64_token}" >> "${GITHUB_OUTPUT}"
       - run: |
-          if [[ "${RUNNER_OS}" = macOS && "$(uname -m)" = x86_64 ]]
+          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+            export HOMEBREW_ARM64_TESTING=1
+          fi
+          if [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]
           then
             export HOMEBREW_NO_INSTALL_FROM_API=1
-            cp /Users/runner/work/homebrew-scoop/homebrew-scoop/.github/files/tb_formulae "$(brew --prefix)/Homebrew/Library/Homebrew/test_bot/formulae.rb"
-            brew test-bot --verbose --only-formulae --root-url=https://ghcr.io/v2/slickag/scoop
+            cp /Users/runner/work/homebrew-scoop/homebrew-scoop/.github/workflows/files/tb_formulae "$(brew --prefix)/Homebrew/Library/Homebrew/test_bot/formulae.rb"
+            brew test-bot --only-formulae --root-url=https://ghcr.io/v2/slickag/scoop
           else
             brew test-bot --only-formulae --root-url=https://ghcr.io/v2/slickag/scoop
           fi
@@ -108,7 +134,6 @@ jobs:
         # id: debug-workflow-run
         # # uses: actions/checkout@v2
         # # NOTE: ipatch, seems to be issue with macos runners circa oct 2024
-        # # uses: lhotari/action-upterm@v1
         # #-------
         # uses: owenthereal/action-upterm@main
         # if: failure() && matrix.os == 'macos-15-intel'
@@ -122,7 +147,17 @@ jobs:
 
       - name: Upload bottles as artifact
         if: always() && github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: bottles_${{ steps.cache-key.outputs.prefix }}
           path: '*.bottle.*'
+  label-pr:
+    needs: test-bot
+    if: ${{ startsWith(github.head_ref, 'bump') && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+    - id: label-the-PR
+      env:
+        GH_TOKEN: ${{secrets.AUTOBUMP_TOKEN}}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: gh pr edit "${PR_NUMBER}" --add-label "pr-pull" --repo "slickag/homebrew-scoop"
