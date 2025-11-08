@@ -7,12 +7,13 @@ class Aria2 < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/slickag/scoop"
-    rebuild 1
-    sha256 cellar: :any,                 arm64_tahoe:   "02ed7775b9fb75eaf78efc09658f9da3baa141c8b4cbdead8ba601825f4f6917"
-    sha256 cellar: :any,                 arm64_sequoia: "8254c20280701b35dec62a9e31e8bc5b7410b698579cba124b94bec8aea75047"
-    sha256 cellar: :any,                 arm64_sonoma:  "5c6c13c2bc1c28d47e0dfbf60a08ea06be6a2ad72a76400acbea2d372d48e7b3"
-    sha256 cellar: :any,                 sequoia:       "d181228e12bc518d5b387e6b3d39e0ca4d4da6d3d383582e24f97d3e0f96665f"
-    sha256 cellar: :any_skip_relocation, x86_64_linux:  "5530134b8dd643d0853bbc6646bfe84b252e3526312956b160d98a40e7baebb8"
+    rebuild 2
+    sha256 cellar: :any,                 arm64_tahoe:   "ee7b297593b3c457d4722405bd35f81f24b070bf37ea6745ab5116e797f2c0d3"
+    sha256 cellar: :any,                 arm64_sequoia: "e55d1635ce4e4137f9a98091cb3b0428a5bcf8b5087179289daf5155f5bf7dc8"
+    sha256 cellar: :any,                 arm64_sonoma:  "93f6f0fc274958a0c9943c677086f4c2b1880fb5b84beda823569f9957a379c5"
+    sha256 cellar: :any,                 sequoia:       "9ce3e24fe9c332a0357f747cc67c6820de27a9f1145373739966dd529db42970"
+    sha256 cellar: :any_skip_relocation, arm64_linux:   "b95bade855c44f91b1489e879ce0face858a433cce901c4a852aa5a25d03c138"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "8f6d0e4d702395615ddb5d10776cf3687723117f3e486746ebde6e085582c94d"
   end
 
   head do
