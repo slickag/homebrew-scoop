@@ -16,7 +16,11 @@ class Curl < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/slickag/scoop"
-    sha256 cellar: :any, arm64_tahoe: "c6382715e6404a531657652aa9aba2aea8e20fe371d375f286067161726cd1b1"
+    rebuild 1
+    sha256 cellar: :any, arm64_tahoe:   "ee3962e04795444162605f98e7fb84ae600bec8f578e548f0ab4e7a55b35ac68"
+    sha256 cellar: :any, arm64_sequoia: "de95be7030046c97b781056df656be77cd17214bf2fdba3de925a299b9b56c77"
+    sha256 cellar: :any, arm64_sonoma:  "d2fe125f0f9785deb484c0f21af68ea2545057257d25b92213dd114cb8b36eeb"
+    sha256 cellar: :any, sequoia:       "3ff25cc6d4f756e9e842ee7bebcee020630d86efb0b1a465b321a8bfe8a7a89f"
   end
 
   head do
