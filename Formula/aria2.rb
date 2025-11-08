@@ -64,7 +64,6 @@ class Aria2 < Formula
       --without-libnettle
     ]
     if OS.mac?
-      ENV.clang
       args << "--with-appletls"
       args << "--without-openssl"
     else
